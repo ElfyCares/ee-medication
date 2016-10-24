@@ -4,7 +4,6 @@
   "main": "ee-medication.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
-    "elfy-api": "git+https://github.com/ElfyCares/elfy-api",
     "paper-elements": "^1.0.7",
     "iron-elements": "^1.0.10",
     "ee-helper-behavior": "git+https://github.com/ElfyCares/ee-helper-behaviors",
