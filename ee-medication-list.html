@@ -77,9 +77,12 @@ medication add and display
       },
 
       _careRecipientChanged(cr) {
-        if (!cr || !cr.id) return
-        this.JSData.collections = [{'name': 'medications', 'query': {'careRecipientId': cr.id}}]
-        this._loadData()
+        if (!cr || !cr.id) {
+          this.set('medications', [])
+        } else {
+          this.JSData.collections = [{'name': 'medications', 'query': {'careRecipientId': cr.id}}]
+          this._loadData()
+        }
       }
     });
   </script>
