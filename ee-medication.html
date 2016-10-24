@@ -3,6 +3,11 @@
 <!--  Paper -->
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+
+<!-- Iron -->
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
 
 <!-- Third -->
 <link rel="import" href="../vaadin-combo-box/vaadin-combo-box.html">
@@ -26,34 +31,64 @@ medication add and display
       :host {
         display: block;
       }
+      .row {
+        padding: 0 12px;
+        height: 48px;
+        border: 1px solid #eee;
+        margin-top: -1px;
+      }
+
+      .actions {
+        opacity: 0;
+      }
+      .row:hover > .actions {
+        opacity: 1;
+      }
     </style>
     <div class="error">[[errorMessage]]</div>
-    <div class="h">
-      <paper-input id="name" label="Name" value="{{medication.name}}"></paper-input>
-      <paper-input id="activeIngredient" label="Active Ingredient" value="{{medication.activeIngredient}}"></paper-input>
-    </div>
-    <div class="h-c">
-      <div class="v-c">
-        <paper-input label="dosis value" value="{{medication.dosisValue}}" always-float-label></paper-input>
-        <span>e.g. | 1 | </span>
-      </div>
-      <div class="v-c">
-        <paper-input label="dosis unit" value="{{medication.dosisUnit}}" always-float-label></paper-input>
-        <span> | Tablett | </span>
-      </div>
-      <div class="v-c">
-        <paper-input label="Repetition" value="{{medication.repetitionValue}}" always-float-label></paper-input>
-        <span> | 3 | </span>
-      </div>
-      <div>&nbsp;x&nbsp;</div>
-      <div class="v-c">
-        <vaadin-combo-box items=[[repetitionUnits]] label="Recurring" allow-custom-value></vaadin-combo-box>
-        <span> | per day | </span>
-      </div>
-    </div>
 
-    <paper-input label="Ingestion Description" value="{{medication.ingestionDescription}}"></paper-input>
-    <paper-button on-tap="_save">Save</paper-button>
+    <template is="dom-if" if="[[!_edit]]">
+      <div class="row h-c">
+        <span>[[medication.name]]</span>
+        <span class="space"></span>
+        <div class="actions">
+          <paper-icon-button icon="icons:create" on-tap="toEditMode"></paper-icon-button>
+        </div>
+      </div>
+    </template>
+
+    <template is="dom-if" if="[[_edit]]">
+      <div class="h">
+        <paper-input id="name" label="Name" value="{{medication.name}}"></paper-input>
+        <paper-input id="activeIngredient" label="Active Ingredient" value="{{medication.activeIngredient}}"></paper-input>
+      </div>
+      <div class="h-c">
+        <div class="v-c">
+          <paper-input label="dosis value" value="{{medication.dosisValue}}" always-float-label></paper-input>
+          <span>e.g. | 1 | </span>
+        </div>
+        <div class="v-c">
+          <paper-input label="dosis unit" value="{{medication.dosisUnit}}" always-float-label></paper-input>
+          <span> | Tablett | </span>
+        </div>
+        <div class="v-c">
+          <paper-input label="Repetition" value="{{medication.repetitionValue}}" always-float-label></paper-input>
+          <span> | 3 | </span>
+        </div>
+        <div>&nbsp;x&nbsp;</div>
+        <div class="v-c">
+          <vaadin-combo-box label="Recurring" items=[[repetitionUnits]]
+            item-label-path="label"
+            item-value-path="value"
+            value="{{medication.repetitionUnit}}" allow-custom-value></vaadin-combo-box>
+          <span> | per day | </span>
+        </div>
+      </div>
+
+      <paper-input label="Ingestion Description" value="{{medication.ingestionDescription}}"></paper-input>
+      <paper-button on-tap="_save">Save</paper-button>
+      <a class="a-button" on-tap="exitEditMode">Cancel</a>
+    </template>
 
   </template>
   <script>
@@ -69,27 +104,60 @@ medication add and display
       ],
 
       properties: {
+
         repetitionUnits: {
           type: Array,
-          value() { return ['day', 'week'] }
+          value() { return [
+              {'label': 'hours', 'value': 'hours'},
+              {'label': 'day', 'value': 'day'},
+              {'label': 'week', 'value': 'week'},
+              {'label': 'as needed', 'value': 'flexible'},
+              {'label': 'once', 'value': 'once'},
+              {'label': 'other', 'value': 'other'},
+            ]}
         },
+
         medication: {
           type: Object,
-          value() { return App.Medication.createRecord() }
+          value() { return App.Medication.createRecord() },
         },
 
         careRecipient: {
           type: Object,
           value() { return {} },
           observer: '_careRecipientChanged'
+        },
+
+        _edit: {
+          type: Boolean,
+          value: false,
+          computed: '_computeEdit(edit, medication)'
+        },
+
+        edit: {
+          type: Boolean,
+          value: false,
         }
       },
 
       attached() {
       },
 
+      toEditMode() {
+        this.edit = true
+      },
+
+      exitEditMode() {
+        this.edit = false
+      },
+
+      _computeEdit(edit, med) {
+        if (edit) return edit
+        return med.id ? false : true
+      },
+
       _careRecipientChanged(cr) {
-        if (!cr) return
+        if (!cr || !cr.id || !this.medication || this.medication.id) return
         this.medication.careRecipient = cr
       }
     });

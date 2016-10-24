@@ -1,0 +1,86 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--  Paper -->
+<link rel="import" href="../paper-fab/paper-fab.html">
+
+<!-- Third -->
+<link rel="import" href="../vaadin-combo-box/vaadin-combo-box.html">
+
+<!-- Elfy -->
+<link rel="import" href="../ee-shared-styles/shared-styles.html">
+<link rel="import" href="../ee-helper-behavior/ee-helper-behavior.html">
+<link rel="import" href="../js-data-behaviors/js-data-collection-behavior.html">
+<link rel="import" href="../elfy-api/elfy-api.html">
+
+<link rel="import" href="ee-medication.html">
+
+<!--
+`ee-medication-list`
+medication add and display
+
+@demo demo/index.html
+-->
+
+<dom-module id="ee-medication-list">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+      }
+
+    </style>
+    <div class="error">[[errorMessage]]</div>
+    <template is="dom-repeat" items="[[medications]]" as="medication">
+      <ee-medication medication="[[medication]]" on-remove="_removeMedication"></ee-medication>
+    </template>
+    <paper-fab class="m0a" icon="add" on-tap="_addMedication"></paper-fab>
+
+  </template>
+  <script>
+    Polymer({
+
+      is: 'ee-medication-list',
+
+      behaviors: [
+        Elfy.EEHelperBehavior,
+        Elfy.JSDataCollectionBehavior,
+      ],
+
+      properties: {
+        medications: {
+          type: Object,
+          value() { return [] }
+        },
+
+        careRecipient: {
+          type: Object,
+          value() { return {} },
+        }
+      },
+
+      observers: [
+        '_careRecipientChanged(careRecipient, careRecipient.*)'
+      ],
+
+      attached() {
+
+      },
+
+      _addMedication() {
+        var cr = App.Medication.createRecord()
+        cr.careRecipient = this.careRecipient
+        this.push('medications', cr)
+      },
+
+      _removeMedication(e) {
+        this.splice('medications', this.medications.indexOf(e.model.medication), 1);
+      },
+
+      _careRecipientChanged(cr) {
+        if (!cr || !cr.id) return
+        this.JSData.collections = [{'name': 'medications', 'query': {'careRecipientId': cr.id}}]
+        this._loadData()
+      }
+    });
+  </script>
+</dom-module>
