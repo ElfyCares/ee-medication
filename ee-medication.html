@@ -1,0 +1,97 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--  Paper -->
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-button/paper-button.html">
+
+<!-- Third -->
+<link rel="import" href="../vaadin-combo-box/vaadin-combo-box.html">
+
+<!-- Elfy -->
+<link rel="import" href="../ee-shared-styles/shared-styles.html">
+<link rel="import" href="../ee-helper-behavior/ee-helper-behavior.html">
+<link rel="import" href="../js-data-behaviors/js-data-record-behavior.html">
+<link rel="import" href="../elfy-api/elfy-api.html">
+
+<!--
+`ee-medication`
+medication add and display
+
+@demo demo/index.html
+-->
+
+<dom-module id="ee-medication">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+      }
+    </style>
+    <div class="error">[[errorMessage]]</div>
+    <div class="h">
+      <paper-input id="name" label="Name" value="{{medication.name}}"></paper-input>
+      <paper-input id="activeIngredient" label="Active Ingredient" value="{{medication.activeIngredient}}"></paper-input>
+    </div>
+    <div class="h-c">
+      <div class="v-c">
+        <paper-input label="dosis value" value="{{medication.dosisValue}}" always-float-label></paper-input>
+        <span>e.g. | 1 | </span>
+      </div>
+      <div class="v-c">
+        <paper-input label="dosis unit" value="{{medication.dosisUnit}}" always-float-label></paper-input>
+        <span> | Tablett | </span>
+      </div>
+      <div class="v-c">
+        <paper-input label="Repetition" value="{{medication.repetitionValue}}" always-float-label></paper-input>
+        <span> | 3 | </span>
+      </div>
+      <div>&nbsp;x&nbsp;</div>
+      <div class="v-c">
+        <vaadin-combo-box items=[[repetitionUnits]] label="Recurring" allow-custom-value></vaadin-combo-box>
+        <span> | per day | </span>
+      </div>
+    </div>
+
+    <paper-input label="Ingestion Description" value="{{medication.ingestionDescription}}"></paper-input>
+    <paper-button on-tap="_save">Save</paper-button>
+
+  </template>
+  <script>
+    Polymer({
+
+      is: 'ee-medication',
+
+      recordName: 'medication',
+
+      behaviors: [
+        Elfy.EEHelperBehavior,
+        Elfy.JSDataRecordBehavior,
+      ],
+
+      properties: {
+        repetitionUnits: {
+          type: Array,
+          value() { return ['day', 'week'] }
+        },
+        medication: {
+          type: Object,
+          value() { return App.Medication.createRecord() }
+        },
+
+        careRecipient: {
+          type: Object,
+          value() { return {} },
+          observer: '_careRecipientChanged'
+        }
+      },
+
+      attached() {
+      },
+
+      _careRecipientChanged(cr) {
+        if (!cr) return
+        this.medication.careRecipient = cr
+      }
+    });
+  </script>
+</dom-module>
