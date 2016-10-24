@@ -28,12 +28,16 @@ medication add and display
         display: block;
       }
 
+      paper-fab {
+        margin: 12px auto;
+      }
+
     </style>
     <div class="error">[[errorMessage]]</div>
     <template is="dom-repeat" items="[[medications]]" as="medication">
       <ee-medication medication="[[medication]]" on-remove="_removeMedication"></ee-medication>
     </template>
-    <paper-fab class="m0a mt" icon="add" on-tap="_addMedication"></paper-fab>
+    <paper-fab icon="add" on-tap="_addMedication"></paper-fab>
 
   </template>
   <script>
