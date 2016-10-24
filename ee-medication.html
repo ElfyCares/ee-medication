@@ -16,7 +16,6 @@
 <link rel="import" href="../ee-shared-styles/shared-styles.html">
 <link rel="import" href="../ee-helper-behavior/ee-helper-behavior.html">
 <link rel="import" href="../js-data-behaviors/js-data-record-behavior.html">
-<link rel="import" href="../elfy-api/elfy-api.html">
 
 <!--
 `ee-medication`
@@ -159,7 +158,15 @@ medication add and display
       _careRecipientChanged(cr) {
         if (!cr || !cr.id || !this.medication || this.medication.id) return
         this.medication.careRecipient = cr
-      }
+      },
+
+      recordCreated() {
+        this.exitEditMode()
+      },
+
+      recordUpdated() {
+        this.toEditMode()
+      },
     });
   </script>
 </dom-module>
