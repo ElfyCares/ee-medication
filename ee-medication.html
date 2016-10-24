@@ -150,7 +150,10 @@ medication add and display
         this.edit = true
       },
 
-      exitEditMode() {
+      exitEditMode(e) {
+        if (!this.medication.id) {
+          this.fire('remove')
+        }
         this.edit = false
       },
 
