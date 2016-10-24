@@ -36,7 +36,9 @@ medication add and display
         border: 1px solid #eee;
         margin-top: -1px;
       }
-
+      .edit-container {
+        padding: 24px
+      }
       .actions {
         opacity: 0;
       }
@@ -57,36 +59,38 @@ medication add and display
     </template>
 
     <template is="dom-if" if="[[_edit]]">
-      <div class="h">
-        <paper-input id="name" label="Name" value="{{medication.name}}"></paper-input>
-        <paper-input id="activeIngredient" label="Active Ingredient" value="{{medication.activeIngredient}}"></paper-input>
-      </div>
-      <div class="h-c">
-        <div class="v-c">
-          <paper-input label="dosis value" value="{{medication.dosisValue}}" always-float-label></paper-input>
-          <span>e.g. | 1 | </span>
+      <div class="edit-container">
+        <div class="h">
+          <paper-input id="name" label="Name" value="{{medication.name}}"></paper-input>
+          <paper-input id="activeIngredient" label="Active Ingredient" value="{{medication.activeIngredient}}"></paper-input>
         </div>
-        <div class="v-c">
-          <paper-input label="dosis unit" value="{{medication.dosisUnit}}" always-float-label></paper-input>
-          <span> | Tablett | </span>
+        <div class="h-c">
+          <div class="v-c">
+            <paper-input label="dosis value" value="{{medication.dosisValue}}" always-float-label></paper-input>
+            <span>e.g. | 1 | </span>
+          </div>
+          <div class="v-c">
+            <paper-input label="dosis unit" value="{{medication.dosisUnit}}" always-float-label></paper-input>
+            <span> | Tablett | </span>
+          </div>
+          <div class="v-c">
+            <paper-input label="Repetition" value="{{medication.repetitionValue}}" always-float-label></paper-input>
+            <span> | 3 | </span>
+          </div>
+          <div>&nbsp;x&nbsp;</div>
+          <div class="v-c">
+            <vaadin-combo-box label="Recurring" items=[[repetitionUnits]]
+              item-label-path="label"
+              item-value-path="value"
+              value="{{medication.repetitionUnit}}" allow-custom-value></vaadin-combo-box>
+            <span> | per day | </span>
+          </div>
         </div>
-        <div class="v-c">
-          <paper-input label="Repetition" value="{{medication.repetitionValue}}" always-float-label></paper-input>
-          <span> | 3 | </span>
-        </div>
-        <div>&nbsp;x&nbsp;</div>
-        <div class="v-c">
-          <vaadin-combo-box label="Recurring" items=[[repetitionUnits]]
-            item-label-path="label"
-            item-value-path="value"
-            value="{{medication.repetitionUnit}}" allow-custom-value></vaadin-combo-box>
-          <span> | per day | </span>
-        </div>
-      </div>
 
-      <paper-input label="Ingestion Description" value="{{medication.ingestionDescription}}"></paper-input>
-      <paper-button on-tap="_save">Save</paper-button>
-      <a class="a-button" on-tap="exitEditMode">Cancel</a>
+        <paper-input label="Ingestion Description" value="{{medication.ingestionDescription}}"></paper-input>
+        <paper-button on-tap="_save">Save</paper-button>
+        <a class="a-button" on-tap="exitEditMode">Cancel</a>
+      </div>
     </template>
 
   </template>
