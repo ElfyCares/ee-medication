@@ -313,10 +313,11 @@ medication add and display
         if (edit) return edit
         if (med && med.id) {
           return false
-        } else {
+        } else if (med !== null) {
           this.edit = true
           return true
         }
+        return false
       },
 
       _careRecipientChanged(cr) {
