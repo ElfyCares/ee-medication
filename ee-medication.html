@@ -1,335 +1,230 @@
 <link rel="import" href="../polymer/polymer.html">
 
-<!--  Paper -->
-<link rel="import" href="../paper-input/paper-input.html">
-<link rel="import" href="../paper-button/paper-button.html">
-<link rel="import" href="../paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../paper-tabs/paper-tabs.html">
-<link rel="import" href="../paper-radio-group/paper-radio-group.html">
-<link rel="import" href="../paper-radio-button/paper-radio-button.html">
-<link rel="import" href="../paper-tooltip/paper-tooltip.html">
-
-<!-- Iron -->
-<link rel="import" href="../iron-icon/iron-icon.html">
-<link rel="import" href="../iron-icons/iron-icons.html">
-
-<!-- Third -->
-<link rel="import" href="../vaadin-combo-box/vaadin-combo-box.html">
-<link rel="import" href="../jay-icons/med-icons.html">
-
 <!-- Elfy -->
-<link rel="import" href="../ee-shared-styles/shared-styles.html">
 <link rel="import" href="../ee-helper-behavior/ee-helper-behavior.html">
 <link rel="import" href="../js-data-behaviors/js-data-record-behavior.html">
-<link rel="import" href="../ee-input-combo/ee-input-combo.html">
 
+<!-- Iron -->
+
+<!-- Paper -->
+<link rel="import" href="../paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-tooltip/paper-tooltip.html">
+
+<!-- Third -->
+<link rel="import" href="../paper-fab-transitions/paper-fab-morph.html">
+
+<!-- My -->
 <!--
-`ee-medication`
-medication add and display
+`ee-medical-condition`
+display and add a medical condition
 
 @demo demo/index.html
 -->
-
-<dom-module id="ee-medication">
+<dom-module id="ee-medical-condition">
   <template>
-    <style include="shared-styles">
-      :host {
-        display: block;
-      }
-      .row {
-        padding: 0 12px;
-        height: 48px;
-        border: 1px solid #eee;
-        border-right: 0;
-        border-left: 0;
-        margin-top: -1px;
-      }
-      .edit-container {
-        padding: 24px 12px;
-        max-width: 400px;
-        margin: 0 auto;
-      }
-      .actions {
-        opacity: 0;
-        pointer-events: none;
-      }
-      .row:hover > .actions {
-        opacity: 1;
-        pointer-events: all;
-      }
+  <style is="custom-style" include="shared-styles">
+    :host {
+      display: block;
+    }
 
-      .edit-label {
-        margin-top: 1.5em;
-        margin-bottom: 1em;
-        font-size: 1.2em;
-        font-weight: 200;
-        color: var(--paper-toolbar-background, #81d4fa);
-      }
+    .disabled {
+      pointer-events: none;
+      opacity: 0.6;
+    }
 
-      .edit-section {
-        opacity: 1;
-        max-height: initial;
-      }
+    .row {
+      padding: 0 12px;
+      height: 64px;
+      border: 1px solid var(--divider-color, #eee);
+      margin-top: -1px;
+      border-right: 0;
+      border-left: 0;
+    }
+    .actions {
+      opacity: 0;
+    }
+    .row:hover > .actions {
+      opacity: 1;
+    }
 
-      .edit-section-invisible {
-        opacity: 0;
-        max-height: 0;
-      }
-      paper-tabs {
-        border-radius: 5px;
-        background-color: #fff;
-        color: var(--primary-text-color, #7e7e7e);
-      }
-      paper-tab.iron-selected {
-        color: #fff;
-        background-color: #81d4fa;
-      }
+    .edit-container {
+      padding: 12px;
+    }
 
-      .right-tab {
-        border-top-right-radius: 5px;
-        border-bottom-right-radius: 5px;
-      }
+    .disabled {
+      pointer-events: none;
+    }
+  </style>
+  <div class="error">[[errorMessage]]</div>
 
-      .left-tab {
-        border-top-left-radius: 5px;
-        border-bottom-left-radius: 5px;
-      }
-    </style>
-    <div class="error">[[errorMessage]]</div>
-
-    <template is="dom-if" if="[[!_edit]]">
-      <div class="row h-c">
-        <span class="space">[[medication.name]]</span>
-        <span class="space">
-          <span>[[medication.dosisValue]]</span>
-          <span>&nbsp;</span>
-          <span>[[medication.dosisUnit]]</span>
-          <span>&nbsp;</span>
-          <span>[[medication.repetitionValue]]</span>
-          <span>&nbsp;x per&nbsp;</span>
-          <span>[[medication.repetitionUnit]]</span>
-        </span>
-        <div class="actions space h">
-          <span class="space"></span>
-          <paper-icon-button id="delBtn" icon="icons:delete" on-tap="_delete"></paper-icon-button>
-          <paper-icon-button id="editBtn" icon="icons:create" on-tap="toEditMode"></paper-icon-button>
-        </div>
+  <!-- Closed = active + id -->
+  <template is="dom-if" if="[[!open]]">
+    <div class="row h-c">
+      <paper-checkbox checked="[[hasId]]" class="disabled"></paper-checkbox>
+      <span>[[medicalCondition.degree]]</span>&nbsp;<span>[[medicalCondition.name]]</span>
+      <span class="space"></span>
+      <div class="actions">
+        <paper-icon-button id="editBtn" icon="icons:create" on-tap="toEditMode"></paper-icon-button>
+        <paper-icon-button id="delBtn" icon="icons:delete" on-tap="_remove"></paper-icon-button>
       </div>
-      <paper-tooltip for="editBtn" position="top">Edit</paper-tooltip>
-      <paper-tooltip for="delBtn" position="top">Delete now</paper-tooltip>
-    </template>
+    </div>
 
-    <template is="dom-if" if="[[_edit]]">
-      <div class="edit-container">
-        <paper-input id="name" label="medication name" placeholder="e.g. Aspirin" value="{{medication.name}}">
-          <div prefix>
-            <iron-icon icon="med:pill" prefix></iron-icon>
-            <span>&nbsp;</span>
-          </div>
-
-        </paper-input>
-        <div class$="[[_editSectionOneClass]]">
-          <div class="edit-label">dosage strength</div>
-          <ee-input-combo id="inputCombo"
-            items="[[units]]"
-            label="e.g. pill"
-            placeholder="e.g. 1 or 2.5"
-            combo-value="{{medication.dosisUnit}}"
-            input-value="{{medication.dosisValue}}"
-            allow-custom-value>
-          </ee-input-combo>
-
-          <div class="edit-label">schedule</div>
-          <paper-tabs attr-for-selected="data-tab" selected="{{_selectedRepetitionUnitTab}}">
-            <paper-tab data-tab="flexible" class="left-tab">as needed</paper-tab>
-            <paper-tab data-tab="scheduled" class="right-tab">scheduled dose</paper-tab>
-          </paper-tabs>
-        </div>
-        <div class$="[[_editSectionTwoClass]]">
-          <div class="edit-label">how often is this dose taken?</div>
-          <paper-radio-group selected="{{medication.repetitionUnit}}">
-            <paper-radio-button name="day">daily</paper-radio-button>
-            <paper-radio-button name="week">weekly</paper-radio-button>
-            <paper-radio-button name="month">monthly</paper-radio-button>
-            <paper-radio-button name="other">other</paper-radio-button>
-          </paper-radio-group>
-        </div>
-        <div class$="[[_editSectionThreeClass]]">
-          <div class="edit-label">how many times?</div>
-          <div class="h-c">
-            <input id="repetitionValue" is="iron-input" class="bordered-input" bind-value="{{medication.repetitionValue}}">
-            <span>&nbsp;per&nbsp;</span>
-            <input id="repetitionUnit" is="iron-input" class="bordered-input" bind-value="{{medication.repetitionUnit}}" disabled="[[_neql(medication.repetitionUnit, 'other')]]">
-          </div>
-        </div>
-
-        <div class$="[[_editSectionOneClass]]">
-          <paper-input id="repetitionDescription" label="Repetition description" placeholder="e.g. mornings and evenings after food"></paper-input>
-          <paper-input id="ingestionDescription" label="Ingestion description" placeholder="e.g. resolve pill under the tongue"></paper-input>
-          <div class="h-c">
-            <paper-button on-tap="_save">Save</paper-button>
-            <a class="a-button" on-tap="exitEditMode">Cancel</a>
-          </div>
-        </div>
-      </div>
-    </template>
+    <paper-tooltip for="delBtn" position="top">Delete now</paper-tooltip>
+    <paper-tooltip for="editBtn" position="top">Edit</paper-tooltip>
   </template>
-  <script>
-    Polymer({
 
-      is: 'ee-medication',
+  <template is="dom-if" if="[[open]]">
+    <div class="edit-container">
+      <template is="dom-if" if="[[hasChoices]]">
+        <div>
+          <span>&nbsp;[[medicalCondition.name]]</span>
+        </div>
+        <paper-radio-group selected="{{medicalCondition.degree}}">
+          <template is="dom-repeat" items="[[medicalCondition.choices]]">
+            <paper-radio-button name="[[item.key]]">[[item.name]]</paper-radio-button>
+          </template>
+        </paper-radio-group>
+      </template>
 
-      recordName: 'medication',
+      <template is="dom-if" if="[[!hasChoices]]">
+        <paper-input id="name" label="Name" hidden="[[hasChoices]]" value="{{medicalCondition.name}}"></paper-input>
+        <paper-input id="degree" label="Degree" placeholder="e.g. mild" value="{{medicalCondition.degree}}"></paper-input>
+      </template>
 
-      behaviors: [
-        Elfy.EEHelperBehavior,
-        Elfy.JSDataRecordBehavior,
-      ],
+      <paper-input label="Can you specify?" value="{{medicalCondition.description}}"></paper-input>
+      <paper-button on-tap="store">Save</paper-button>
+      <a class="a-button" on-tap="_cancel">Cancel</a>
+    </div>
+  </template>
 
-      properties: {
+</template>
+<script>
+  Polymer({
 
-        units: {
-          type: Array,
-          value() { return ['g','mg','ug','pill','injection','poultice'] },
-        },
+    recordName: 'medicalCondition',
 
-        _selectedRepetitionUnitTab: {
-          type: String,
-          value: 'flexible'
-        },
+    is: 'ee-medical-condition',
 
-        medication: {
-          type: Object,
-          value() { return App.Medication.createRecord() },
-        },
+    behaviors: [
+      Elfy.EEHelperBehavior,
+      Elfy.JSDataRecordBehavior,
+    ],
 
-        careRecipient: {
-          type: Object,
-          value() { return {} },
-          observer: '_careRecipientChanged'
-        },
+    properties: {
 
-        _edit: {
-          type: Boolean,
-          value: false,
-          computed: '_computeEdit(edit,medication)'
-        },
-
-        edit: {
-          type: Boolean,
-          value: false,
-          notify: true
-        },
-
-        _editSectionOneClass: {
-          type: String,
-          value: 'edit-section-invisible',
-          notify: true,
-          computed: '_computeEditOneVisible(_edit, medication.name)'
-        },
-
-        _editSectionTwoClass: {
-          type: String,
-          value: 'edit-section-invisible',
-          notify: true,
-          computed: '_computeEditTwoVisible(_edit, _selectedRepetitionUnitTab)'
-        },
-
-        _editSectionThreeClass: {
-          type: String,
-          value: 'edit-section-invisible',
-          notify: true,
-          computed: '_computeEditThreeVisible(_edit, medication.repetitionUnit)'
-        },
-
-        // _comboShowedOnce: {
-        //   type: Boolean,
-        //   value: false,
-        // },
+      isNewRecord: {
+        type: Boolean,
+        value: false,
+        notify: true,
+        observer: '_isNewRecordChanged'
       },
 
-      observers: [
-        '_focusInput(medication.repetitionUnit)',
-        '_repetitionUnitTabChanged(_selectedRepetitionUnitTab, medication)',
-      ],
-
-      _focusInput(repetitionUnit) {
-        if (!repetitionUnit) return
-        if (repetitionUnit === 'other' && this.$$('#repetitionUnit')) {
-          this.$$('#repetitionUnit').focus()
-
-        } else if (repetitionUnit.length > 1 && this.$$('#repetitionValue')) {
-          this.$$('#repetitionValue').focus()
-        }
+      open: {
+        type: Boolean,
+        value: false,
+        notify: true,
       },
 
-      _repetitionUnitTabChanged(tab) {
-        if (tab && tab === 'flexible') {
-          this.set('medication.repetitionUnit', tab)
-        }
+      medicalCondition: {
+        type: Object,
+        value() { return {} },
+        notify: true,
       },
 
-      _computeEditOneVisible(edit, name) {
-        if (!edit) return 'edit-section-invisible'
-        if (name && name.length > 2) {
-          // if (!this._comboShowedOnce) {
-          //   this.async(function() {
-          //     this.$$('#inputCombo').open()
-          //   }.bind(this), 300)
-          //   this._comboShowedOnce = true
-          // }
-          return 'edit-section'
-        } else {
-          return 'edit-section-invisible'
-        }
+      careRecipient: {
+        type: Object,
+        value() { return {} }
       },
 
-      _computeEditTwoVisible(edit,tab) {
-        if (!edit) return 'edit-section-invisible'
-        if (tab && tab==='flexible') return 'edit-section-invisible'
-        if (tab && tab==='scheduled') return 'edit-section'
-        return 'edit-section-invisible'
+      hasId: {
+        type: Boolean,
+        value: false,
+        notify: true,
+        computed: '_computeHasId(medicalCondition, medicalCondition.*)'
       },
 
-      _computeEditThreeVisible(edit, repetitionUnit) {
-        if (!edit) return 'edit-section-invisible'
-        if (repetitionUnit && repetitionUnit==='flexible') return 'edit-section-invisible'
-        return repetitionUnit && repetitionUnit.length > 1 &&  repetitionUnit!=='scheduled' ? 'edit-section' : 'edit-section-invisible'
+      hasChoices: {
+        type: Boolean,
+        value: false,
+        notify: true,
+        computed: '_computeChoices(medicalCondition)'
       },
+    },
 
-      toEditMode() {
-        this.edit = true
-      },
+    _isNewRecordChanged(isNew) {
+      this.open = isNew || false
+    },
 
-      exitEditMode(e) {
-        if (!this.medication.id) {
-          this.fire('remove')
-        }
-        this.edit = false
-      },
+    _computeChoices(medicalCondition) {
+      if (medicalCondition && medicalCondition.choices && medicalCondition.choices.length > 0) {
+        return true
+      } else {
+        return false
+      }
+    },
 
-      _computeEdit(edit, med) {
-        if (edit) return edit
-        if (med && med.id) {
-          return false
-        } else {
-          this.edit = true
-          return true
-        }
-      },
+    _computeHasId(medicalCondition) {
+      return (medicalCondition && medicalCondition.id) ? true : false
+    },
 
-      _careRecipientChanged(cr) {
-        if (!cr || !cr.id || !this.medication || this.medication.id) return
-        this.medication.careRecipient = cr
-      },
+    toEditMode() {
+      this.open = true
+    },
 
-      _recordCreated() {
+    exitEditMode() {
+      this.open = false
+    },
+
+    _cancel() {
+      if (this.medicalCondition.id) {
         this.exitEditMode()
-      },
-
-      _recordUpdated() {
+      } else {
         this.exitEditMode()
-      },
-    });
-  </script>
+        this._remove()
+      }
+    },
+
+    _remove() {
+      if (this.medicalCondition.id) {
+        this._delete()
+      } else {
+        this.fire('remove')
+      }
+    },
+
+    store() {
+      if (!this.medicalCondition) return
+
+      if (this.medicalCondition.id) {
+        this._save()
+      } else {
+        var r = App.Store.createRecord('medicalConditions')
+        for (k in this.medicalCondition) r[k] = this.medicalCondition[k]
+        r.careRecipient = this.careRecipient
+        if (r.name) {
+            r.key = (r.key && r.key !== '') ? r.key : r.name.replace(' ', '_')
+        }
+        this.medicalCondition = r
+        this._save()
+      }
+    },
+
+    _recordCreated() {
+      this.isNewRecord = false
+      this.exitEditMode()
+    },
+    _recordUpdated() {
+      this.exitEditMode()
+    },
+    _recordDeleted() {
+      this.exitEditMode()
+    }
+
+  });
+</script>
 </dom-module>

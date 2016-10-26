@@ -1,66 +1,66 @@
 <link rel="import" href="../polymer/polymer.html">
 
-<!--  Paper -->
+<!-- Elfy -->
+<link rel="import" href="../ee-shared-styles/shared-styles.html">
+<link rel="import" href="../ee-app-settings/ee-app-settings.html">
+<link rel="import" href="../ee-helper-behavior/ee-helper-behavior.html">
+<link rel="import" href="../js-data-behaviors/js-data-collection-behavior.html">
+
+<!-- Iron -->
+
+<!-- Paper -->
 <link rel="import" href="../paper-fab/paper-fab.html">
 
 <!-- Third -->
-<link rel="import" href="../vaadin-combo-box/vaadin-combo-box.html">
 
-<!-- Elfy -->
-<link rel="import" href="../ee-shared-styles/shared-styles.html">
-<link rel="import" href="../ee-helper-behavior/ee-helper-behavior.html">
-<link rel="import" href="../js-data-behaviors/js-data-collection-behavior.html">
-<link rel="import" href="../elfy-api/elfy-api.html">
-
-<link rel="import" href="ee-medication.html">
+<!-- My -->
+<link rel="import" href="ee-medical-condition.html">
 
 <!--
-`ee-medication-list`
-medication add and display
-
+`ee-medical-condition-list`
+display and add a medical condition
 @demo demo/index.html
 -->
 
-<dom-module id="ee-medication-list">
+<dom-module id="ee-medical-condition-list">
   <template>
-    <style include="shared-styles">
+    <style is="custom-style" include="shared-styles">
       :host {
         display: block;
       }
 
-      paper-fab {
+      .add-fab {
         margin: 12px auto;
       }
 
       .list-container {
         background-color: #fff;
         padding: 24px;
-        @apply(--ee-medication-list-container);
+        @apply(--ee-medical-condition-container);
       }
-
     </style>
-    <div class="error">[[errorMessage]]</div>
 
-    <template is="dom-if" if="[[_lengthBigger(medications,0)]]" restamp="true">
-      <div class="h mb mt">
-        <span class="space">Name</span>
-        <span class="space">Dosage</span>
-        <span class="space"></span>
-      </div>
-    </template>
+    <ee-app-settings
+      standard-medical-condition-records="{{standardMedicalConditions}}"
+      records-reset-trigger="[[careRecipient]]">
+    </ee-app-settings>
 
     <div class="list-container">
-      <template is="dom-repeat" items="{{medications}}" as="medication">
-        <ee-medication medication="{{medication}}" on-remove="_removeMedication"></ee-medication>
+      <template is="dom-repeat" items="{{mergedMedicalConditions}}" as="medicalCondition" sort="_sort">
+        <ee-medical-condition
+          care-recipient="[[careRecipient]]"
+          medical-condition="[[medicalCondition]]"
+          on-remove="_removeMedicalCondition"
+          is-new-record="{{medicalCondition.new}}">
+        </ee-medical-condition>
       </template>
     </div>
-    <paper-fab icon="add" on-tap="_addMedication" hidden="[[!careRecipient.id]]"></paper-fab>
-
+    <paper-fab class="add-fab" icon="add" on-tap="_addMedicalCondition"></paper-fab>
   </template>
   <script>
     Polymer({
 
-      is: 'ee-medication-list',
+      is: 'ee-medical-condition-list',
 
       behaviors: [
         Elfy.EEHelperBehavior,
@@ -68,45 +68,97 @@ medication add and display
       ],
 
       properties: {
-        medications: {
-          type: Object,
-          value() { return [] }
-        },
-
         careRecipient: {
           type: Object,
           value() { return {} },
-          notify: true
+          notify: true,
+          observer: '_careRecipientChanged'
         },
 
+        standardMedicalConditions: {
+          type: Array,
+          value() { return [] }
+        },
+
+        medicalConditions: {
+          type: Array,
+          value() { return [] }
+        },
+
+        mergedMedicalConditions: {
+          type: Array,
+          value() { return [] },
+        },
       },
 
       observers: [
-        '_careRecipientChanged(careRecipient, careRecipient.*)'
+        '_mergeMedicalConditions(medicalConditions, standardMedicalConditions, medicalConditions.*)'
       ],
 
-      attached() {
-
+      _addMedicalCondition() {
+        var r = App.MedicalCondition.createRecord()
+        r.new = true
+        this.unshift('medicalConditions', r)
       },
 
-      _addMedication() {
-        var cr = App.Medication.createRecord()
-        cr.careRecipient = this.careRecipient
-        this.push('medications', cr)
+      _sort(a,b) {
+        if (a.new || b.new) return a.new ? 1 : -1
+        if (a.id && !b.id) return 1
+        if (b.id && !a.id) return -1
+        if ((a.id && b.id) || (!a.id && !b.id)) {
+          return a.name > b.name
+        }
       },
 
-      _removeMedication(e) {
-        this.splice('medications', this.medications.indexOf(e.model.medication), 1);
+      _removeMedicalCondition(e) {
+        // remove newly created (not stored)
+        this.splice('medicalConditions', this.medicalConditions.indexOf(e.model.medicalCondition), 1);
       },
 
       _careRecipientChanged(cr) {
         if (!cr || !cr.id) {
-          this.set('medications', [])
+          this.set('medicalConditions', [])
         } else {
-          this.JSData.collections = [{'name': 'medications', 'query': {'careRecipientId': cr.id}}]
+          this.JSData.collections = [{'name': 'medicalConditions', 'query': {'careRecipientId': cr.id}}]
           this._loadData()
         }
-      }
+      },
+
+      _mergeMedicalConditions(medicalConditions, standardMedicalConditions) {
+        if (!medicalConditions || !standardMedicalConditions || !this.careRecipient || !this.careRecipient.id) return this.set('mergedMedicalConditions', [])
+
+        this.set('mergedMedicalConditions', [])
+
+        medicalConditions.forEach((e) => {
+          e.active=true
+        })
+        // extend stored medical conditions array
+        // with choices and name fields from standardMedicalConditions
+
+        standardMedicalConditions.forEach((e) => {
+          var mc = medicalConditions.find(m => m.key === e.key)
+          if (mc) {
+            mc.choices = e.choices
+            mc.name = mc.name ? mc.name : e.name
+            mc.standard = true
+          }
+        })
+
+        // add standard medical conditions to array (distinct by key)
+        var merged = medicalConditions.slice()
+        standardMedicalConditions.forEach((e) => {
+          e.standard = true
+          if (merged.findIndex(m => e.key === m.key) === -1) {
+            merged.push(e)
+          }
+        })
+
+        // sort by name
+        merged.sort(function(a,b) { return a.name > b.name })
+
+        this.set('mergedMedicalConditions', merged)
+      },
+
     });
   </script>
 </dom-module>
