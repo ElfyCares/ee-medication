@@ -193,6 +193,7 @@ display and add a medical condition
       if (this.medicalCondition.id) {
         this._delete()
       } else {
+        this.exitEditMode()
         this.fire('remove')
       }
     },
