@@ -9,7 +9,9 @@
     "ee-helper-behavior": "git+https://github.com/ElfyCares/ee-helper-behaviors",
     "js-data-behaviors": "git+https://github.com/ElfyCares/js-data-behaviors",
     "demo-models": "git+https://github.com/ElfyCares/demo-models",
-    "ee-shared-styles": "git+https://github.com/ElfyCares/ee-shared-styles"
+    "ee-shared-styles": "git+https://github.com/ElfyCares/ee-shared-styles",
+    "ee-input-combo": "git+https://github.com/ElfyCares/ee-input-combo",
+    "jay-icons": "*"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

@@ -4,6 +4,10 @@
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-tabs/paper-tabs.html">
+<link rel="import" href="../paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../paper-tooltip/paper-tooltip.html">
 
 <!-- Iron -->
 <link rel="import" href="../iron-icon/iron-icon.html">
@@ -11,11 +15,13 @@
 
 <!-- Third -->
 <link rel="import" href="../vaadin-combo-box/vaadin-combo-box.html">
+<link rel="import" href="../jay-icons/med-icons.html">
 
 <!-- Elfy -->
 <link rel="import" href="../ee-shared-styles/shared-styles.html">
 <link rel="import" href="../ee-helper-behavior/ee-helper-behavior.html">
 <link rel="import" href="../js-data-behaviors/js-data-record-behavior.html">
+<link rel="import" href="../ee-input-combo/ee-input-combo.html">
 
 <!--
 `ee-medication`
@@ -34,10 +40,12 @@ medication add and display
         padding: 0 12px;
         height: 48px;
         border: 1px solid #eee;
+        border-right: 0;
+        border-left: 0;
         margin-top: -1px;
       }
       .edit-container {
-        padding: 24px
+        padding: 24px 12px;
       }
       .actions {
         opacity: 0;
@@ -45,54 +53,118 @@ medication add and display
       .row:hover > .actions {
         opacity: 1;
       }
+
+      .edit-label {
+        margin-top: 1.5em;
+        margin-bottom: 1em;
+        font-size: 1.2em;
+        font-weight: 200;
+        color: var(--paper-toolbar-background, #81d4fa);
+      }
+
+      .edit-section {
+        opacity: 1;
+        max-height: initial;
+      }
+
+      .edit-section-invisible {
+        opacity: 0;
+        max-height: 0;
+      }
+      paper-tabs {
+        border-radius: 5px;
+        background-color: #fff;
+        color: var(--primary-text-color, #7e7e7e);
+      }
+      paper-tab.iron-selected {
+        color: #fff;
+        background-color: #81d4fa;
+      }
+
+      .right-tab {
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+      }
+
+      .left-tab {
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+      }
     </style>
     <div class="error">[[errorMessage]]</div>
 
     <template is="dom-if" if="[[!_edit]]">
       <div class="row h-c">
-        <span>[[medication.name]]</span>
-        <span class="space"></span>
-        <div class="actions">
-          <paper-icon-button icon="icons:create" on-tap="toEditMode"></paper-icon-button>
+        <span class="space">[[medication.name]]</span>
+        <span class="space">
+          <span>[[medication.dosisValue]]</span>
+          <span>&nbsp;</span>
+          <span>[[medication.dosisUnit]]</span>
+        </span>
+        <div class="actions space h">
+          <span class="space"></span>
+          <paper-icon-button id="delBtn" icon="icons:delete" on-tap="_remove"></paper-icon-button>
+          <paper-icon-button id="editBtn" icon="icons:create" on-tap="toEditMode"></paper-icon-button>
         </div>
       </div>
+      <paper-tooltip for="editBtn" position="top">Edit</paper-tooltip>
+      <paper-tooltip for="delBtn" position="top">Delete now</paper-tooltip>
     </template>
 
     <template is="dom-if" if="[[_edit]]">
       <div class="edit-container">
-        <div class="h">
-          <paper-input id="name" label="Name" value="{{medication.name}}"></paper-input>
-          <paper-input id="activeIngredient" label="Active Ingredient" value="{{medication.activeIngredient}}"></paper-input>
+        <paper-input id="name" label="medication name" placeholder="e.g. Aspirin" value="{{medication.name}}">
+          <div prefix>
+            <iron-icon icon="med:pill" prefix></iron-icon>
+            <span>&nbsp;</span>
+          </div>
+
+        </paper-input>
+        <div class$="[[_editSectionOneClass]]">
+          <div class="edit-label">dosage strength</div>
+          <ee-input-combo id="inputCombo"
+            items="[[units]]"
+            label="e.g. pill"
+            placeholder="e.g. 1 or 2.5"
+            combo-value="{{medication.dosisUnit}}"
+            input-value="{{medication.dosisValue}}"
+            allow-custom-value>
+          </ee-input-combo>
+
+          <div class="edit-label">schedule</div>
+          <paper-tabs attr-for-selected="data-tab" selected="{{_selectedRepetitionUnitTab}}">
+            <paper-tab data-tab="flexible" class="left-tab">as needed</paper-tab>
+            <paper-tab data-tab="scheduled" class="right-tab">scheduled dose</paper-tab>
+          </paper-tabs>
         </div>
-        <div class="h-c">
-          <div class="v-c">
-            <paper-input label="dosis value" value="{{medication.dosisValue}}" always-float-label></paper-input>
-            <span>e.g. | 1 | </span>
-          </div>
-          <div class="v-c">
-            <paper-input label="dosis unit" value="{{medication.dosisUnit}}" always-float-label></paper-input>
-            <span> | Tablett | </span>
-          </div>
-          <div class="v-c">
-            <paper-input label="Repetition" value="{{medication.repetitionValue}}" always-float-label></paper-input>
-            <span> | 3 | </span>
-          </div>
-          <div>&nbsp;x&nbsp;</div>
-          <div class="v-c">
-            <vaadin-combo-box label="Recurring" items=[[repetitionUnits]]
-              item-label-path="label"
-              item-value-path="value"
-              value="{{medication.repetitionUnit}}" allow-custom-value></vaadin-combo-box>
-            <span> | per day | </span>
+        <div class$="[[_editSectionTwoClass]]">
+          <div class="edit-label">how often is this dose taken?</div>
+          <paper-radio-group selected="{{medication.repetitionUnit}}">
+            <paper-radio-button name="day">daily</paper-radio-button>
+            <paper-radio-button name="week">weekly</paper-radio-button>
+            <paper-radio-button name="month">monthly</paper-radio-button>
+            <paper-radio-button name="other">other</paper-radio-button>
+          </paper-radio-group>
+        </div>
+        <div class$="[[_editSectionThreeClass]]">
+          <div class="edit-label">how many times?</div>
+          <div class="h-c">
+            <input id="repetitionValue" is="iron-input" class="bordered-input" bind-value="{{medication.repetitionValue}}">
+            <span>&nbsp;per&nbsp;</span>
+            <input id="repetitionUnit" is="iron-input" class="bordered-input" bind-value="{{medication.repetitionUnit}}" disabled="[[_neql(medication.repetitionUnit, 'other')]]">
           </div>
         </div>
 
-        <paper-input label="Ingestion Description" value="{{medication.ingestionDescription}}"></paper-input>
-        <paper-button on-tap="_save">Save</paper-button>
-        <a class="a-button" on-tap="exitEditMode">Cancel</a>
+        <div class$="[[_editSectionOneClass]]">
+          <paper-input id="repetitionDescription" label="Repetition description" placeholder="e.g. mornings and evenings after food"></paper-input>
+          <paper-input id="ingestionDescription" label="Ingestion description" placeholder="e.g. resolve pill under the tongue"></paper-input>
+          <div class="h-c">
+            <paper-button on-tap="_save">Save</paper-button>
+            <a class="a-button" on-tap="exitEditMode">Cancel</a>
+          </div>
+        </div>
       </div>
     </template>
-
   </template>
   <script>
     Polymer({
@@ -108,16 +180,15 @@ medication add and display
 
       properties: {
 
-        repetitionUnits: {
+        units: {
           type: Array,
-          value() { return [
-              {'label': 'hours', 'value': 'hours'},
-              {'label': 'day', 'value': 'day'},
-              {'label': 'week', 'value': 'week'},
-              {'label': 'as needed', 'value': 'flexible'},
-              {'label': 'once', 'value': 'once'},
-              {'label': 'other', 'value': 'other'},
-            ]}
+          value() { return ['g','mg','ug','pill','injection','poultice'] },
+        },
+
+        _selectedRepetitionUnitTab: {
+          type: String,
+          value: 'flexible',
+          observer: '_repetitionUnitTabChanged'
         },
 
         medication: {
@@ -134,16 +205,88 @@ medication add and display
         _edit: {
           type: Boolean,
           value: false,
-          computed: '_computeEdit(edit, medication)'
+          computed: '_computeEdit(edit,medication)'
         },
 
         edit: {
           type: Boolean,
           value: false,
+          notify: true
+        },
+
+        _editSectionOneClass: {
+          type: String,
+          value: 'edit-section-invisible',
+          notify: true,
+          computed: '_computeEditOneVisible(_edit, medication.name)'
+        },
+
+        _editSectionTwoClass: {
+          type: String,
+          value: 'edit-section-invisible',
+          notify: true,
+          computed: '_computeEditTwoVisible(_edit, _selectedRepetitionUnitTab)'
+        },
+
+        _editSectionThreeClass: {
+          type: String,
+          value: 'edit-section-invisible',
+          notify: true,
+          computed: '_computeEditThreeVisible(_edit, medication.repetitionUnit)'
+        },
+
+        // _comboShowedOnce: {
+        //   type: Boolean,
+        //   value: false,
+        // },
+      },
+
+      observers: [
+        '_focusInput(medication.repetitionUnit)'
+      ],
+
+      _focusInput(repetitionUnit) {
+        if (!repetitionUnit) return
+        if (repetitionUnit === 'other' && this.$$('#repetitionUnit')) {
+          this.$$('#repetitionUnit').focus()
+
+        } else if (repetitionUnit.length > 1 && this.$$('#repetitionValue')) {
+          this.$$('#repetitionValue').focus()
         }
       },
 
-      attached() {
+      _repetitionUnitTabChanged(tab) {
+        if (tab && tab === 'flexible') {
+          this.set('medication.repetitionUnit', tab)
+        }
+      },
+
+      _computeEditOneVisible(edit, name) {
+        if (!edit) return 'edit-section-invisible'
+        if (name && name.length > 2) {
+          // if (!this._comboShowedOnce) {
+          //   this.async(function() {
+          //     this.$$('#inputCombo').open()
+          //   }.bind(this), 300)
+          //   this._comboShowedOnce = true
+          // }
+          return 'edit-section'
+        } else {
+          return 'edit-section-invisible'
+        }
+      },
+
+      _computeEditTwoVisible(edit,tab) {
+        if (!edit) return 'edit-section-invisible'
+        if (tab && tab==='flexible') return 'edit-section-invisible'
+        if (tab && tab==='scheduled') return 'edit-section'
+        return 'edit-section-invisible'
+      },
+
+      _computeEditThreeVisible(edit, repetitionUnit) {
+        if (!edit) return 'edit-section-invisible'
+        if (repetitionUnit && repetitionUnit==='flexible') return 'edit-section-invisible'
+        return repetitionUnit && repetitionUnit.length > 1 &&  repetitionUnit!=='scheduled' ? 'edit-section' : 'edit-section-invisible'
       },
 
       toEditMode() {
@@ -159,7 +302,12 @@ medication add and display
 
       _computeEdit(edit, med) {
         if (edit) return edit
-        return med.id ? false : true
+        if (med && med.id) {
+          return false
+        } else {
+          this.edit = true
+          return true
+        }
       },
 
       _careRecipientChanged(cr) {

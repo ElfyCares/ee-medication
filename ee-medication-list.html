@@ -32,11 +32,28 @@ medication add and display
         margin: 12px auto;
       }
 
+      .list-container {
+        background-color: #fff;
+        padding: 12px;
+        @apply(--ee-medication-list-container);
+      }
+
     </style>
     <div class="error">[[errorMessage]]</div>
-    <template is="dom-repeat" items="[[medications]]" as="medication">
-      <ee-medication medication="[[medication]]" on-remove="_removeMedication"></ee-medication>
+
+    <template is="dom-if" if="[[_lengthBigger(medications,0)]]" restamp="true">
+      <div class="h mb mt">
+        <span class="space">Name</span>
+        <span class="space">Dosage</span>
+        <span class="space"></span>
+      </div>
     </template>
+
+    <div class="list-container">
+      <template is="dom-repeat" items="{{medications}}" as="medication">
+        <ee-medication medication="{{medication}}" on-remove="_removeMedication"></ee-medication>
+      </template>
+    </div>
     <paper-fab icon="add" on-tap="_addMedication"></paper-fab>
 
   </template>
