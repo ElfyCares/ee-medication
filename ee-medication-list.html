@@ -54,7 +54,7 @@ medication add and display
         <ee-medication medication="{{medication}}" on-remove="_removeMedication"></ee-medication>
       </template>
     </div>
-    <paper-fab icon="add" on-tap="_addMedication"></paper-fab>
+    <paper-fab icon="add" on-tap="_addMedication" hidden="[[!careRecipient.id]]"></paper-fab>
 
   </template>
   <script>
@@ -76,7 +76,9 @@ medication add and display
         careRecipient: {
           type: Object,
           value() { return {} },
-        }
+          notify: true
+        },
+
       },
 
       observers: [

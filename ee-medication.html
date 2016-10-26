@@ -49,9 +49,11 @@ medication add and display
       }
       .actions {
         opacity: 0;
+        pointer-events: none;
       }
       .row:hover > .actions {
         opacity: 1;
+        pointer-events: all;
       }
 
       .edit-label {
@@ -100,10 +102,14 @@ medication add and display
           <span>[[medication.dosisValue]]</span>
           <span>&nbsp;</span>
           <span>[[medication.dosisUnit]]</span>
+          <span>&nbsp;</span>
+          <span>[[medication.repetitionValue]]</span>
+          <span>&nbsp;times per&nbsp;</span>
+          <span>[[medication.repetitionUnit]]</span>
         </span>
         <div class="actions space h">
           <span class="space"></span>
-          <paper-icon-button id="delBtn" icon="icons:delete" on-tap="_remove"></paper-icon-button>
+          <paper-icon-button id="delBtn" icon="icons:delete" on-tap="_delete"></paper-icon-button>
           <paper-icon-button id="editBtn" icon="icons:create" on-tap="toEditMode"></paper-icon-button>
         </div>
       </div>
@@ -187,8 +193,7 @@ medication add and display
 
         _selectedRepetitionUnitTab: {
           type: String,
-          value: 'flexible',
-          observer: '_repetitionUnitTabChanged'
+          value: 'flexible'
         },
 
         medication: {
@@ -242,7 +247,8 @@ medication add and display
       },
 
       observers: [
-        '_focusInput(medication.repetitionUnit)'
+        '_focusInput(medication.repetitionUnit)',
+        '_repetitionUnitTabChanged(_selectedRepetitionUnitTab, medication)',
       ],
 
       _focusInput(repetitionUnit) {
