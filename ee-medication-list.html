@@ -49,13 +49,13 @@ medication add and display
       </div>
     </template>
 
-    <div class="list-container">
+    <div class="list-container" hidden="[[!careRecipient.id]]">
       <template is="dom-repeat" items="{{medications}}" as="medication">
         <ee-medication medication="{{medication}}" on-remove="_removeMedication"></ee-medication>
       </template>
     </div>
     <paper-fab icon="add" on-tap="_addMedication" hidden="[[!careRecipient.id]]"></paper-fab>
-    <div hidden="[[careRecipient.id]]">Please first select a care recipient.</div>
+    <div class="center" hidden="[[careRecipient.id]]">Please first select a care recipient.</div>
   </template>
   <script>
     Polymer({
