@@ -55,7 +55,7 @@ medication add and display
       </template>
     </div>
     <paper-fab icon="add" on-tap="_addMedication" hidden="[[!careRecipient.id]]"></paper-fab>
-
+    <div hidden="[[careRecipient.id]]">Please first select a care recipient.</div>
   </template>
   <script>
     Polymer({
