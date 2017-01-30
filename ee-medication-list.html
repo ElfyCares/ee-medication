@@ -102,9 +102,8 @@ medication add and display
       },
 
       _careRecipientChanged(cr) {
-        if (!cr || !cr.id) {
-          this.set('medications', [])
-        } else {
+        this.set('medications', [])
+        if (cr && cr.id) {
           this.JSData.collections = [{'name': 'medications', 'query': {'careRecipientId': cr.id}}]
           this._loadData()
         }
