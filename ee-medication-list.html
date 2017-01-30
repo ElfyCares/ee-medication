@@ -3,6 +3,9 @@
 <!--  Paper -->
 <link rel="import" href="../paper-fab/paper-fab.html">
 
+<!-- Iron -->
+<link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
+
 <!-- Third -->
 <link rel="import" href="../vaadin-combo-box/vaadin-combo-box.html">
 
@@ -65,6 +68,7 @@ medication add and display
       behaviors: [
         Elfy.EEHelperBehavior,
         Elfy.JSDataCollectionBehavior,
+        Polymer.IronResizableBehavior,
       ],
 
       properties: {
@@ -86,7 +90,7 @@ medication add and display
       ],
 
       attached() {
-
+        this.fire('resize')
       },
 
       _addMedication() {
