@@ -94,6 +94,7 @@ medication add and display
       },
 
       _addMedication() {
+        if (!this.careRecipient || !this.careRecipient.id) return
         var cr = App.Medication.createRecord()
         cr.careRecipient = this.careRecipient
         this.push('medications', cr)
@@ -111,7 +112,7 @@ medication add and display
           this.JSData.collections = [{'name': 'medications', 'query': {'careRecipientId': cr.id}}]
           this._loadData()
         }
-      }
+      },
     });
   </script>
 </dom-module>
