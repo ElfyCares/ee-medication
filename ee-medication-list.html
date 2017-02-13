@@ -57,7 +57,7 @@ medication add and display
         <ee-medication medication="{{medication}}" on-remove="_removeMedication"></ee-medication>
       </template>
     </div>
-    <paper-fab icon="add" on-tap="_addMedication" hidden="[[!careRecipient.id]]"></paper-fab>
+    <paper-fab icon="add" on-tap="addMedication" hidden="[[!careRecipient.id]]"></paper-fab>
     <div class="center" hidden="[[careRecipient.id]]">Please first select a care recipient.</div>
   </template>
   <script>
@@ -93,7 +93,7 @@ medication add and display
         this.fire('resize')
       },
 
-      _addMedication() {
+      addMedication() {
         if (!this.careRecipient || !this.careRecipient.id) return
         var cr = App.Medication.createRecord()
         cr.careRecipient = this.careRecipient
